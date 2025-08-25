@@ -1,3 +1,4 @@
+
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -75,6 +76,16 @@ function enviarEmail(destino, assunto, conteudoHTML) {
     }
   });
 }
+
+async function notificarPushcutSecundario() {
+  try {
+    await axios.post('https://api.pushcut.io/q-XmBT8fFsxnWbOyfaBQH/notifications/Venda%20Realizada');
+    console.log('✅ Segundo Pushcut enviado');
+  } catch (err) {
+    console.error('❌ Erro ao enviar segundo Pushcut:', err.response?.data || err.message);
+  }
+}
+
 async function adicionarNaPlanilha({ nome, email, phone, metodo, amount, reference,utm_source,utm_medium,utm_campaign,utm_term,utm_content }) {
   // Parse do JSON das credenciais direto da variável de ambiente
   const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
@@ -264,7 +275,7 @@ if (fbPixelId && fbAccessToken && email && phone) {
         }
       ],
       access_token: fbAccessToken,
-      test_event_code: 'TEST82934'
+      test_event_code: 'TEST14326'
     };
 
     const response = await axios.post(
@@ -289,7 +300,7 @@ if (fbPixelId && fbAccessToken && email && phone) {
         <p>Referência: ${reference}. Valor: MZN ${amount}.</p>
         <p>Obrigado pela compra!</p>
         <p>Para acessar o produto, clique no link: 
-        <a href="https://club.membify.com.br/app" target="_blank">Acessar produto</a></p>
+        <a href="https://api.whatsapp.com/send/?phone=258865984978&text=Ol%C3%A1%2C+quero+receber+o+meu+acesso&type=phone_number&app_absent=0" target="_blank">Acessar produto</a></p>
       `;
 
       enviarEmail(email, 'Compra Confirmada!', textoEmailHTML);
@@ -342,7 +353,7 @@ if (fbPixelId && fbAccessToken && email && phone) {
         ? phone
         : `258${phone.replace(/^0/, '')}`;
 
-      const mensagem = `Olá ${nomeCliente}! 👋\n\nSua transação foi aprovada com sucesso 🛒\n\n📌 Referência: *${reference}*\n💰 Valor: *MZN ${amount}*\n\nAcesse seu produto clicando abaixo:\n👉 https://superlative-croquembouche-ef1f1f.netlify.app/\n\nSe precisar de ajuda, estamos por aqui!`;
+      const mensagem = `Olá ${nomeCliente}! 👋\n\nSua transação foi aprovada com sucesso 🛒\n\n📌 Referência: *${reference}*\n💰 Valor: *MZN ${amount}*\n\nPara liberar o seu acesso à plataforma, clique no botão abaixo para enviar automaticamente a mensagem no nosso canal oficial com suporte via WhatsApp.\n✅ Basta clicar em enviar e a Natália vai te acompanhar em todo o processo.\n\nhttps://wa.me/258858093864?text=Ol%C3%A1%2C%20quero%20receber%20o%20meu%20acesso `;
 
       await axios.post(
   'https://api.z-api.io/instances/3E253C0E919CB028543B1A5333D349DF/token/4909422EC4EB52D5FAFB7AB1/send-text',
@@ -359,6 +370,8 @@ if (fbPixelId && fbAccessToken && email && phone) {
 
 
       console.log('✅ Mensagem enviada via WhatsApp (Z-API)');
+      await notificarPushcut();
+      await notificarPushcutSecundario();
     } catch (err) {
       console.error('❌ Erro ao enviar mensagem pelo WhatsApp:', err.response?.data || err.message);
     }
